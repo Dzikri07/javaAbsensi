@@ -9,6 +9,8 @@ package matkuldesktop;
     import java.sql.SQLException;
     import javax.swing.JOptionPane;
     import java.awt.event.KeyEvent;
+    import matkuldesktop.JframeRole;
+
 
 /**
  *
@@ -26,6 +28,7 @@ public class menuUtama extends javax.swing.JFrame {
      */
     public menuUtama() {
         initComponents();
+        koneksi(); // ini perlu ditambahkan supaya variabel con tidak null
     }
 
     /**
@@ -52,8 +55,6 @@ public class menuUtama extends javax.swing.JFrame {
         setMaximumSize(new java.awt.Dimension(1200, 800));
 
         jLabel1.setIcon(new javax.swing.ImageIcon("C:\\Users\\Dzikr\\Downloads\\tes (1).jpg")); // NOI18N
-        jLabel1.setMaximumSize(new java.awt.Dimension(1200, 800));
-        jLabel1.setMinimumSize(new java.awt.Dimension(1200, 800));
 
         jMenuBar1.setToolTipText("");
 
@@ -75,6 +76,11 @@ public class menuUtama extends javax.swing.JFrame {
         jMenu2.setText("Data Master");
 
         mRole.setText("Role User");
+        mRole.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mRoleActionPerformed(evt);
+            }
+        });
         jMenu2.add(mRole);
 
         mUser.setText("Maintenence User");
@@ -116,6 +122,14 @@ public class menuUtama extends javax.swing.JFrame {
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void mRoleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mRoleActionPerformed
+        // TODO add your handling code here:
+        JframeRole role = new JframeRole();
+        role.setLocationRelativeTo(null); // untuk posisi tengah
+        role.setVisible(true);            // tampilkan frame-nya
+
+    }//GEN-LAST:event_mRoleActionPerformed
 
     /**
      * @param args the command line arguments

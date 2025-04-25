@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 
 
+
 /**
  *
  * @author Dzikr
@@ -27,6 +28,7 @@ public class login extends javax.swing.JFrame {
      */
     public login() {
         initComponents();
+         konekdb(); // ini perlu ditambahkan supaya variabel con tidak null
     }
 
     /**
@@ -44,7 +46,7 @@ public class login extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         usr = new javax.swing.JTextField();
         pas = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        login = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -58,10 +60,10 @@ public class login extends javax.swing.JFrame {
 
         jLabel4.setText("Password");
 
-        jButton1.setText("login");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        login.setText("login");
+        login.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                loginActionPerformed(evt);
             }
         });
 
@@ -81,7 +83,7 @@ public class login extends javax.swing.JFrame {
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addGroup(layout.createSequentialGroup()
                             .addGap(18, 18, 18)
-                            .addComponent(jButton1)
+                            .addComponent(login)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jButton2))
                         .addGroup(layout.createSequentialGroup()
@@ -114,7 +116,7 @@ public class login extends javax.swing.JFrame {
                     .addComponent(pas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
+                    .addComponent(login)
                     .addComponent(jButton2))
                 .addGap(99, 99, 99))
         );
@@ -122,7 +124,7 @@ public class login extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginActionPerformed
         // TODO add your handling code here:
         String user=usr.getText();
         String pass=pas.getText();
@@ -164,7 +166,7 @@ if (usr == null || pas == null) {
     return;
 }
 
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_loginActionPerformed
 
     /**
      * @param args the command line arguments
@@ -212,12 +214,12 @@ if (usr == null || pas == null) {
       }//end begin
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JButton login;
     private javax.swing.JTextField pas;
     private javax.swing.JTextField usr;
     // End of variables declaration//GEN-END:variables
