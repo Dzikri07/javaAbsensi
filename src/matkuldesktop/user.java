@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package matkuldesktop;
     import java.awt.event.KeyEvent;
     import static java.lang.System.err;
@@ -38,7 +33,7 @@ public class user extends javax.swing.JFrame {
         dataToComboBox();
         cekPass();
     }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -79,6 +74,11 @@ public class user extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        jTable_user.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable_userMouseClicked(evt);
+            }
+        });
         jTable_user.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 jTable_userKeyPressed(evt);
@@ -109,8 +109,13 @@ public class user extends javax.swing.JFrame {
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Rak");
+        jLabel1.setText("user");
 
+        txt_iduser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txt_iduserActionPerformed(evt);
+            }
+        });
         txt_iduser.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 txt_iduserKeyPressed(evt);
@@ -142,7 +147,7 @@ public class user extends javax.swing.JFrame {
 
         jLabel2.setText("Id User");
 
-        jLabel3.setText("kode Kategory");
+        jLabel3.setText("Nama User");
 
         jLabel4.setText("ConfirmPass");
 
@@ -255,7 +260,7 @@ public class user extends javax.swing.JFrame {
          
          
     }//GEN-LAST:event_txt_iduserKeyPressed
-
+    
     private void txt_namaKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_namaKeyPressed
         // TODO add your handling code here:
          if (evt.getKeyCode()==KeyEvent.VK_ENTER)
@@ -344,34 +349,56 @@ public class user extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_hapusActionPerformed
 
     private void refreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshActionPerformed
-
+        datatojtable();
+        bersihkantextfiled();
     }//GEN-LAST:event_refreshActionPerformed
 
     private void txt_namaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_namaActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txt_namaActionPerformed
+
+    private void jTable_userMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable_userMouseClicked
+        // TODO add your handling code here:
+       
+        int row = jTable_user.getSelectedRow();
+        txt_iduser.setText(jTable_user.getValueAt(row, 0).toString());
+        txt_nama.setText(jTable_user.getValueAt(row, 1).toString());
+        txt_pass.setText(jTable_user.getValueAt(row, 2).toString());
+        
+        // Misalnya role ID dan role name di kolom ke-3 dan ke-4
+        // Kamu bisa sesuaikan berdasarkan urutan kolommu
+        String roleId = jTable_user.getValueAt(row, 3).toString();
+        String roleName = jTable_user.getValueAt(row, 4).toString();
+        
+        jComborole.setSelectedItem(roleName);
+    }//GEN-LAST:event_jTable_userMouseClicked
+
+    private void txt_iduserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_iduserActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txt_iduserActionPerformed
     public void hapus_data()
     {
-        if(JOptionPane.showConfirmDialog(null, "Apakah Yakin Akan di Hapus ?","Informasi",JOptionPane.INFORMATION_MESSAGE)==JOptionPane.OK_OPTION)
-        {
-            try{
-                Statement SqlDel;
-                SqlDel = con.createStatement();
-                 SqlDel.executeUpdate("delete from tuser where idUser='"+  txt_iduser.getText()+"'");
-                 
-                JOptionPane.showMessageDialog(this,"Data berhasil Di Hapus","Success",JOptionPane.INFORMATION_MESSAGE);
-                bersihkantextfiled();
-                datatojtable();
- 
-            }catch(SQLException e){
-                 JOptionPane.showMessageDialog(this,"Delete data gagal\n"+e.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);       
-              }
-
-        } else
-        {
-           JOptionPane.showMessageDialog(null, "Kode User Batal Di Hapus");
-           txt_iduser.requestFocus(); 
-        }
+        int pilih = JOptionPane.showConfirmDialog(
+    null, 
+    "Apakah Yakin Akan di Hapus ?", 
+    "Informasi", 
+    JOptionPane.YES_NO_OPTION, // << ini tombol
+    JOptionPane.QUESTION_MESSAGE // << ini ikon tanda tanya
+);
+       if(pilih == JOptionPane.YES_OPTION) {
+    try {
+        Statement SqlDel = con.createStatement();
+        SqlDel.executeUpdate("delete from tuser where idUser='"+  txt_iduser.getText()+"'");
+        JOptionPane.showMessageDialog(this, "Data berhasil Di Hapus", "Success", JOptionPane.INFORMATION_MESSAGE);
+        bersihkantextfiled();
+        datatojtable();
+    } catch(SQLException e) {
+        JOptionPane.showMessageDialog(this, "Delete data gagal\n" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);       
+    }
+} else {
+    JOptionPane.showMessageDialog(null, "Kode User Batal Di Hapus");
+    txt_iduser.requestFocus(); 
+}
 
     }//akhir Method
  
@@ -415,15 +442,27 @@ public class user extends javax.swing.JFrame {
                  
           if (rsu.next())
           {
-             String SqlU="update tuser set namauser='"+ txt_nama.getText() +"',password ='"+ txt_pass +"',roleid='"+ rool_id +"',datamodify='"+ TglNow +"' where idUser='"+ txt_iduser.getText() +"'";  
+              String SqlU = "UPDATE tuser SET namauser='" + txt_nama.getText() + 
+              "', password='" + txt_pass.getText() + 
+              "', roleid='" + rool_id + 
+              "', datamodify='" + TglNow + 
+              "' WHERE idUser='" + txt_iduser.getText() + "'";
+
              strU.executeUpdate(SqlU);
              JOptionPane.showMessageDialog(null, "Data Sudah Di Ubah","Insert",JOptionPane.INFORMATION_MESSAGE);                   
              datatojtable();
              bersihkantextfiled();
  
           }else{
-            String SqlI="insert into tuser values('"+ txt_iduser.getText() +"','"+ txt_nama.getText() +"','"+ txt_pass.getText() +"','"+ rool_id +"','"+TglNow+"','"+TglNow+"')";   
-            strI.executeUpdate(SqlI);
+            
+String SqlI = "INSERT INTO tuser VALUES('" + txt_iduser.getText() + 
+              "', '" + txt_nama.getText() + 
+              "', '" + txt_pass.getText() + 
+              "', '" + rool_id + 
+              "', '" + TglNow + 
+              "', '" + TglNow + "')";
+
+              strI.executeUpdate(SqlI);
             JOptionPane.showMessageDialog(null, "Data Sudah Di Simpan","Insert",JOptionPane.INFORMATION_MESSAGE);                   
             datatojtable();
             bersihkantextfiled();

@@ -142,6 +142,7 @@
             </Property>
           </Properties>
           <Events>
+            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="jTable_userMouseClicked"/>
             <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="jTable_userKeyPressed"/>
           </Events>
         </Component>
@@ -177,11 +178,12 @@
           <Font name="Tahoma" size="18" style="1"/>
         </Property>
         <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="text" type="java.lang.String" value="Rak"/>
+        <Property name="text" type="java.lang.String" value="user"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txt_iduser">
       <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txt_iduserActionPerformed"/>
         <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txt_iduserKeyPressed"/>
       </Events>
     </Component>
@@ -218,7 +220,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
       <Properties>
-        <Property name="text" type="java.lang.String" value="kode Kategory"/>
+        <Property name="text" type="java.lang.String" value="Nama User"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel4">

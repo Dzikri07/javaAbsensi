@@ -10,6 +10,7 @@ package matkuldesktop;
     import javax.swing.JOptionPane;
     import java.awt.event.KeyEvent;
     import matkuldesktop.JframeRole;
+    import matkuldesktop.Session;
 
 
 /**
@@ -48,7 +49,8 @@ public class menuUtama extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         mRole = new javax.swing.JMenuItem();
         mUser = new javax.swing.JMenuItem();
-        mEx = new javax.swing.JMenuItem();
+        laporan = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sistem Informasi Perpusatkaan");
@@ -60,10 +62,15 @@ public class menuUtama extends javax.swing.JFrame {
 
         jMenu1.setText("File");
 
-        jMenuItem1.setText("menu");
+        jMenuItem1.setText("absen");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem1);
 
-        jMenuItem2.setText("Maintenece User");
+        jMenuItem2.setText("data karywan");
         jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem2ActionPerformed(evt);
@@ -91,8 +98,21 @@ public class menuUtama extends javax.swing.JFrame {
         });
         jMenu2.add(mUser);
 
-        mEx.setText("Keluar");
-        jMenu2.add(mEx);
+        laporan.setText("Laporan Absensi");
+        laporan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                laporanActionPerformed(evt);
+            }
+        });
+        jMenu2.add(laporan);
+
+        jMenuItem3.setText("Kelola karawan");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem3);
 
         jMenuBar1.add(jMenu2);
 
@@ -116,20 +136,85 @@ public class menuUtama extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mUserActionPerformed
-        // TODO add your handling code here:
+        // Cek admin dulu
+    if (!"admin".equalsIgnoreCase(Session.currentRole)) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Hanya admin yang dapat membuka User Management",
+            "Akses Ditolak",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return;
+    }
+    // Baru buka frame User
+    user frameUser = new user();
+    frameUser.setLocationRelativeTo(this);
+    frameUser.setVisible(true);
     }//GEN-LAST:event_mUserActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        // TODO add your handling code here:
+        if (!"admin".equalsIgnoreCase(Session.currentRole)) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Hanya admin yang dapat membuka User Management",
+            "Akses Ditolak",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return;
+    }
+        dataKaryawan role = new dataKaryawan();
+        role.setLocationRelativeTo(null); // untuk posisi tengah
+        role.setVisible(true);    
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void mRoleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mRoleActionPerformed
+        // Cek admin dulu
+    if (!"admin".equalsIgnoreCase(Session.currentRole)) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Hanya admin yang dapat membuka Role Management",
+            "Akses Ditolak",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return;
+    }
+    // Baru buka frame Role
+    JframeRole frameRole = new JframeRole();
+    frameRole.setLocationRelativeTo(this);
+    frameRole.setVisible(true);
+
+    }//GEN-LAST:event_mRoleActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+         if (!"admin".equalsIgnoreCase(Session.currentRole)) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Hanya admin yang dapat membuka pengelolaan karyawan",
+            "Akses Ditolak",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return;
+    }
         // TODO add your handling code here:
-        JframeRole role = new JframeRole();
+        dataKaryawan role = new dataKaryawan();
         role.setLocationRelativeTo(null); // untuk posisi tengah
         role.setVisible(true);            // tampilkan frame-nya
 
-    }//GEN-LAST:event_mRoleActionPerformed
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        // TODO add your handling code here:
+        absen role = new absen();
+        role.setLocationRelativeTo(null); // untuk posisi tengah
+        role.setVisible(true);         
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void laporanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_laporanActionPerformed
+        // TODO add your handling code here:
+        laporan role = new laporan();
+        role.setLocationRelativeTo(null); // untuk posisi tengah
+        role.setVisible(true);         
+    }//GEN-LAST:event_laporanActionPerformed
 
     /**
      * @param args the command line arguments
@@ -185,7 +270,8 @@ public class menuUtama extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
-    private javax.swing.JMenuItem mEx;
+    private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem laporan;
     private javax.swing.JMenuItem mRole;
     private javax.swing.JMenuItem mUser;
     // End of variables declaration//GEN-END:variables

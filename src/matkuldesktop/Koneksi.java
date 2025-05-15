@@ -4,7 +4,7 @@ package matkuldesktop;
  import java.sql.DriverManager;
  import java.sql.SQLException;
  import java.sql.Statement;
- import javax.swing.JOptionPane;
+import javax.swing.JOptionPane;
 
 
 public class Koneksi { 
@@ -17,6 +17,7 @@ public class Koneksi {
             String url ="jdbc:mysql://localhost/db_absensi";
             String user="root";
             String pass="";
+            
             Class.forName("com.mysql.jdbc.Driver");
             con =DriverManager.getConnection(url,user,pass);
             stm = con.createStatement();

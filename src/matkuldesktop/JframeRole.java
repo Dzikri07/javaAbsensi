@@ -28,8 +28,22 @@ public class JframeRole extends javax.swing.JFrame {
      * Creates new form JframeRole4
      */
     public JframeRole() {
-        initComponents();
-        HeaderTable();
+       
+    // 1) cek role dulu
+    if (!"admin".equalsIgnoreCase(Session.currentRole)) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Anda tidak punya hak akses ke modul Role",
+            "Akses Ditolak",
+            JOptionPane.WARNING_MESSAGE
+        );
+        dispose();
+        return;
+    }
+    // 2) jika admin, inisialisasi normal
+    initComponents();
+    HeaderTable();
+
     }
     
      public void HeaderTable()
@@ -92,7 +106,6 @@ e.getMessage() );
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         update = new javax.swing.JButton();
-        export = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -152,13 +165,6 @@ e.getMessage() );
             }
         });
 
-        export.setText("Export");
-        export.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exportActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -181,8 +187,7 @@ e.getMessage() );
                                     .addComponent(update)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(exit))
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(export)))
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(208, 208, 208)
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -205,9 +210,7 @@ e.getMessage() );
                     .addComponent(del)
                     .addComponent(exit)
                     .addComponent(update))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(export)
-                .addContainerGap(72, Short.MAX_VALUE))
+                .addContainerGap(110, Short.MAX_VALUE))
         );
 
         pack();
@@ -360,12 +363,6 @@ e.getMessage() );
         // TODO add your handling code here:
     }//GEN-LAST:event_updateActionPerformed
 
-    private void exportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportActionPerformed
-        
-
-        // TODO add your handling code here:
-    }//GEN-LAST:event_exportActionPerformed
-
     private void TroleMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_TroleMouseClicked
                 // TODO add your handling code here:
          role.setText(model.getValueAt(Trole.getSelectedRow(),1)+"");
@@ -413,7 +410,6 @@ e.getMessage() );
     private javax.swing.JTable Trole;
     private javax.swing.JButton del;
     private javax.swing.JButton exit;
-    private javax.swing.JButton export;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;

@@ -10,6 +10,8 @@ import javax.swing.JOptionPane;
 import java.awt.event.KeyEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import matkuldesktop.Session;
+
 
 
 
@@ -29,6 +31,31 @@ public class login extends javax.swing.JFrame {
     public login() {
         initComponents();
          konekdb(); // ini perlu ditambahkan supaya variabel con tidak null
+          usr.addKeyListener(new java.awt.event.KeyAdapter() {
+        public void keyPressed(java.awt.event.KeyEvent evt) {
+            if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+                pas.requestFocus();
+            }
+        }
+    });
+
+    // Enter dari pas -> login
+    pas.addKeyListener(new java.awt.event.KeyAdapter() {
+        public void keyPressed(java.awt.event.KeyEvent evt) {
+            if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+                login.doClick(); // klik login secara otomatis
+            }
+        }
+    });
+
+    // Enter dari login button
+    login.addKeyListener(new java.awt.event.KeyAdapter() {
+        public void keyPressed(java.awt.event.KeyEvent evt) {
+            if (evt.getKeyCode() == KeyEvent.VK_ENTER) { 
+                login.doClick(); // klik login juga
+            }
+        }
+    });
     }
 
     /**
@@ -51,14 +78,20 @@ public class login extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel1.setIcon(new javax.swing.ImageIcon("C:\\Users\\Dzikr\\Downloads\\kumis.png")); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/matkuldesktop/Screenshot 2025-05-01 142406.png"))); // NOI18N
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
-        jLabel2.setText("FROM LOGIN");
+        jLabel2.setText("FORM LOGIN");
 
         jLabel3.setText("Username");
 
         jLabel4.setText("Password");
+
+        usr.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                usrActionPerformed(evt);
+            }
+        });
 
         login.setText("login");
         login.addActionListener(new java.awt.event.ActionListener() {
@@ -74,35 +107,30 @@ public class login extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(37, 37, 37)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap()
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(53, 53, 53)
+                        .addGap(67, 67, 67)
                         .addComponent(jLabel2))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(18, 18, 18)
-                            .addComponent(login)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton2))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(33, 33, 33)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel4)
-                                .addComponent(jLabel3))
-                            .addGap(25, 25, 25)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(usr, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(pas, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(102, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(32, 32, 32)
+                        .addComponent(login)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton2))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel3))
+                        .addGap(25, 25, 25)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(usr, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pas, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(172, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(42, Short.MAX_VALUE)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 390, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(34, 34, 34))
             .addGroup(layout.createSequentialGroup()
                 .addGap(62, 62, 62)
                 .addComponent(jLabel2)
@@ -114,59 +142,72 @@ public class login extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(pas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 150, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(login)
                     .addComponent(jButton2))
                 .addGap(99, 99, 99))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(48, 48, 48)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 355, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginActionPerformed
-        // TODO add your handling code here:
-        String user=usr.getText();
-        String pass=pas.getText();
-        if (user.isEmpty() && pass.isEmpty())
-        {
-        JOptionPane.showMessageDialog(null, "User dan Password Tidak Boleh Kosong");
-        usr.requestFocus();
-        }else{
-            //proses coding di sini
-        } //akhir If
-        try{
-         String sql="select *from tuser where iduser='"+ usr.getText() +"' && password='"+ pas.getText() +"'";
-                stm=con.createStatement();
-                rs=stm.executeQuery(sql);
-                
-                //proses pengecekan user dan pass
+     String user = usr.getText().trim();
+    String pass = pas.getText().trim();
 
-            }catch(SQLException err){
-            JOptionPane.showMessageDialog(this, "Koneksi Gagal\n"+err.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
-           }
-        
-        try {
-            if (rs.next())
-            {
-                menuUtama menu=new menuUtama();
-                menu.setLocationRelativeTo(null);
-                menu.setVisible(true);
-                dispose();
-            }else
-            {
-                JOptionPane.showMessageDialog(null, "User atau pass ada yang salah");
-                usr.requestFocus();
+    if (user.isEmpty() || pass.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "Username dan Password tidak boleh kosong",
+            "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    String sql = "SELECT u.iduser, u.namauser, u.password, r.namarole "
+               + "FROM tuser u "
+               + "JOIN trole r ON u.roleid = r.roleid "
+               + "WHERE u.namauser = ? AND u.password = ?";
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, user);
+        ps.setString(2, pass);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            if (!rs.next()) {
+                // gagal login
+                JOptionPane.showMessageDialog(this,
+                    "Username atau password salah",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(login.class.getName()).log(Level.SEVERE, null, ex);
-        }
-if (usr == null || pas == null) {
-    JOptionPane.showMessageDialog(this, "Field belum terhubung.");
-    return;
-}
 
+            // Baca nama role dari DB
+            String roleName = rs.getString("namarole");
+
+            // Simpan ke Session
+            Session.currentUser = rs.getString("namauser");
+            Session.currentRole = roleName;
+            System.out.println(">>> Login sukses. Role = " + roleName);
+
+            // Setelah simpan session baru boleh buka menuUtama
+            menuUtama menu = new menuUtama();
+            menu.setLocationRelativeTo(null);
+            menu.setVisible(true);
+            dispose();
+        }
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(this,
+            "Error koneksi: " + ex.getMessage(),
+            "Database Error", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_loginActionPerformed
+
+    private void usrActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usrActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_usrActionPerformed
 
     /**
      * @param args the command line arguments
