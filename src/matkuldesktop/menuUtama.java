@@ -204,14 +204,14 @@ public class menuUtama extends javax.swing.JFrame {
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         // TODO add your handling code here:
-        absen role = new absen();
+        absen3 role = new absen3();
         role.setLocationRelativeTo(null); // untuk posisi tengah
         role.setVisible(true);         
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void laporanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_laporanActionPerformed
         // TODO add your handling code here:
-        laporan role = new laporan();
+        laporan1 role = new laporan1();
         role.setLocationRelativeTo(null); // untuk posisi tengah
         role.setVisible(true);         
     }//GEN-LAST:event_laporanActionPerformed

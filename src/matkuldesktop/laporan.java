@@ -1,95 +1,131 @@
 package matkuldesktop;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Date;
-// Tambahkan import untuk ekspor:
+import java.util.Calendar;
+
+// Ekspor:
+import javax.swing.SpinnerDateModel;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.FileOutputStream;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.pdf.PdfWriter;
 
+
 public class laporan extends javax.swing.JFrame {
-   
+    private int currentPage = 1, totalPage = 1, rowsPerPage = 30;
     private Connection conn;
+    // komponen UI
     private JTable jtlaporan;
     private DefaultTableModel model;
     private JTextField tfCariIdAbsen, tfCariIdKaryawan, tfCariNama;
-    private JComboBox<String> cbProdi, cbJabatan, cbShift, cbKeterangan;
+    private JComboBox<String> cbProdi, cbJabatan, cbShift, cbKeterangan, cbViewMode;
+    private JCheckBox cbUseDate;
     private JSpinner spinnerTanggalMulai, spinnerTanggalAkhir;
     private JButton btnPrev, btnNext, btnSearch, btnExportPDF, btnExportExcel;
     private JLabel lblHalaman, lblTotal;
-    private int currentPage = 1, totalPage = 1, rowsPerPage = 30;
-    
-    
-    private PreparedStatement pst;
-    private ResultSet rs;
 
-    private Statement stat;       
+        // semua kolom untuk reset/hide
+    private final String[] allColumns = {
+        "ID Absen","ID Karyawan","Nama","Tanggal",
+        "Jam Masuk","Jam Istirahat","Jam Kembali","Jam Pulang",
+        "Hadir","Terlambat","Terlambat Kembali","Lembur",
+        "Prodi","Jabatan","Shift","Keterangan"
+    };
 
     public laporan() {
-        setTitle("Laporan Absensi");
+        super("Laporan Absensi");
         setSize(900, 600);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(10,10));
+        Koneksi.Getkoneksi();
+        conn = Koneksi.Getkoneksi(); 
 
-        // Koneksi DB
-        connect();
+        initFilterPanel();
+        initTable();
+        initBottomPanel();
 
-        // Inisialisasi panel filter atas
-        JPanel panelFilter = new JPanel(new GridLayout(2, 1));
-        JPanel panelCari = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panelCari.add(new JLabel("ID Absen:"));
-        tfCariIdAbsen = new JTextField(5); panelCari.add(tfCariIdAbsen);
-        panelCari.add(new JLabel("ID Karyawan:"));
-        tfCariIdKaryawan = new JTextField(5); panelCari.add(tfCariIdKaryawan);
-        panelCari.add(new JLabel("Nama:"));
-        tfCariNama = new JTextField(10); panelCari.add(tfCariNama);
-        btnSearch = new JButton("Search");
-        panelCari.add(btnSearch);
+        btnSearch.addActionListener(e -> loadData(1));
+        btnPrev.addActionListener(e -> loadData(currentPage - 1));
+        btnNext.addActionListener(e -> loadData(currentPage + 1));
+        btnExportExcel.addActionListener(e -> exportDialog("Excel"));
+        btnExportPDF.addActionListener(e -> exportDialog("PDF"));
 
-        JPanel panelDropdown = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panelDropdown.add(new JLabel("Prodi:"));
-        cbProdi = new JComboBox<>(); panelDropdown.add(cbProdi);
-        panelDropdown.add(new JLabel("Jabatan:"));
-        cbJabatan = new JComboBox<>(); panelDropdown.add(cbJabatan);
-        panelDropdown.add(new JLabel("Shift:"));
-        cbShift = new JComboBox<>(); panelDropdown.add(cbShift);
-        panelDropdown.add(new JLabel("Keterangan:"));
-        cbKeterangan = new JComboBox<>(); panelDropdown.add(cbKeterangan);
-        panelDropdown.add(new JLabel("Tanggal Mulai:"));
-        spinnerTanggalMulai = new JSpinner(new SpinnerDateModel());
-        spinnerTanggalMulai.setEditor(new JSpinner.DateEditor(spinnerTanggalMulai, "yyyy-MM-dd"));
-        panelDropdown.add(spinnerTanggalMulai);
-        panelDropdown.add(new JLabel("Sampai:"));
-        spinnerTanggalAkhir = new JSpinner(new SpinnerDateModel());
-        spinnerTanggalAkhir.setEditor(new JSpinner.DateEditor(spinnerTanggalAkhir, "yyyy-MM-dd"));
-        panelDropdown.add(spinnerTanggalAkhir);
+        setVisible(true);
+        loadData(1);
+    }
+    private void initFilterPanel() {
+    JPanel panelFilter = new JPanel(new GridLayout(2,1,5,5));
 
-        panelFilter.add(panelCari);
-        panelFilter.add(panelDropdown);
-        add(panelFilter, BorderLayout.NORTH);
+    // baris pencarian
+    JPanel panelCari = new JPanel(new FlowLayout(FlowLayout.LEFT,5,5));
+    panelCari.add(new JLabel("ID Absen:"));
+    tfCariIdAbsen = new JTextField(5); panelCari.add(tfCariIdAbsen);
+    panelCari.add(new JLabel("ID Karyawan:"));
+    tfCariIdKaryawan = new JTextField(5); panelCari.add(tfCariIdKaryawan);
+    panelCari.add(new JLabel("Nama:"));
+    tfCariNama = new JTextField(10); panelCari.add(tfCariNama);
+    btnSearch = new JButton("Search"); panelCari.add(btnSearch);
+    panelFilter.add(panelCari);
 
-        // Setup tabel
-        model = new DefaultTableModel(new String[]{
-            "ID Absen","ID Karyawan","Nama","Tanggal",
-            "Jam Masuk","Jam Istirahat","Jam Kembali","Jam Pulang",
-            "Hadir","Terlambat","Terlambat Kembali","Lembur",
-            "Prodi","Jabatan","Shift","Keterangan"
-        }, 0);
+    // baris dropdown + tanggal
+    JPanel panelDropdown = new JPanel(new FlowLayout(FlowLayout.LEFT,5,5));
+    cbProdi = new JComboBox<>(); cbJabatan = new JComboBox<>();
+    cbShift = new JComboBox<>(); cbKeterangan = new JComboBox<>();
+    cbUseDate = new JCheckBox("Filter Tanggal");
+    spinnerTanggalMulai = new JSpinner(new SpinnerDateModel());
+    spinnerTanggalMulai.setEditor(new JSpinner.DateEditor(spinnerTanggalMulai,"yyyy-MM-dd"));
+    spinnerTanggalAkhir = new JSpinner(new SpinnerDateModel());
+    spinnerTanggalAkhir.setEditor(new JSpinner.DateEditor(spinnerTanggalAkhir,"yyyy-MM-dd"));
+    panelDropdown.add(new JLabel("Prodi:")); panelDropdown.add(cbProdi);
+    panelDropdown.add(new JLabel("Jabatan:")); panelDropdown.add(cbJabatan);
+    panelDropdown.add(new JLabel("Shift:")); panelDropdown.add(cbShift);
+    panelDropdown.add(new JLabel("Keterangan:")); panelDropdown.add(cbKeterangan);
+    panelDropdown.add(cbUseDate);
+    panelDropdown.add(new JLabel("Mulai:")); panelDropdown.add(spinnerTanggalMulai);
+    panelDropdown.add(new JLabel("Sampai:")); panelDropdown.add(spinnerTanggalAkhir);
+    panelFilter.add(panelDropdown);
+
+    // mode tampilan
+    JPanel panelMode = new JPanel(new FlowLayout(FlowLayout.LEFT,5,5));
+    panelMode.add(new JLabel("Mode Tampilan:"));
+    cbViewMode = new JComboBox<>(new String[]{"Semua Data","Tabel Harian","Per Karyawan"});
+    cbViewMode.addActionListener(e -> applyViewMode());
+    panelMode.add(cbViewMode);
+
+    // gabung filter + mode
+    JPanel panelAtas = new JPanel();
+    panelAtas.setLayout(new BorderLayout());
+    panelAtas.add(panelMode, BorderLayout.NORTH);
+    panelAtas.add(panelFilter, BorderLayout.CENTER);
+
+    // tambahkan ke frame
+    add(panelAtas, BorderLayout.NORTH);
+
+    // load opsi filter
+    loadFilterOptions();
+    cbUseDate.setSelected(false);
+}
+
+    private void initTable() {
+        model = new DefaultTableModel(allColumns, 0);
         jtlaporan = new JTable(model);
-        jtlaporan.setAutoCreateRowSorter(true); // Sorting/filtering aktif:contentReference[oaicite:9]{index=9}
-        JScrollPane scroll = new JScrollPane(jtlaporan);
-        add(scroll, BorderLayout.CENTER);
+        jtlaporan.setAutoCreateRowSorter(true);
+        add(new JScrollPane(jtlaporan), BorderLayout.CENTER);
+    }
 
-        // Panel bawah (paging & ekspor)
-        JPanel panelBawah = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    private void initBottomPanel() {
+        JPanel panelBawah = new JPanel(new FlowLayout(FlowLayout.RIGHT,5,5));
         btnPrev = new JButton("<< Prev");
         btnNext = new JButton("Next >>");
         lblHalaman = new JLabel("Halaman 0/0");
@@ -103,288 +139,288 @@ public class laporan extends javax.swing.JFrame {
         panelBawah.add(btnExportPDF);
         panelBawah.add(btnExportExcel);
         add(panelBawah, BorderLayout.SOUTH);
-
-        // Muat opsi filter dari database
-        loadFilterOptions();
-
-        // Event handling
-        btnSearch.addActionListener(e -> loadData(1));
-        btnPrev.addActionListener(e -> loadData(currentPage - 1));
-        btnNext.addActionListener(e -> loadData(currentPage + 1));
-        btnExportExcel.addActionListener(e -> exportDialog("Excel"));
-        btnExportPDF.addActionListener(e -> exportDialog("PDF"));
-
-        setVisible(true);
-        // Muat data awal halaman 1
-        loadData(1);
     }
-    
-     private void connect(){//begin
-        try {
-               Class.forName("com.mysql.jdbc.Driver");
-               conn=DriverManager.getConnection("jdbc:mysql://localhost/db_absensi", "root", "");
-               stat=conn.createStatement();
-             } catch (ClassNotFoundException | SQLException e) {
-               JOptionPane.showMessageDialog(null, e);
-             }
-      }//end begin
-    
+
     private void loadFilterOptions() {
-        try {
-            Statement st = conn.createStatement();
-            // Prodi
+        try (Statement st = conn.createStatement()) {
             cbProdi.addItem("All");
             ResultSet rs = st.executeQuery("SELECT idprodi, prodi FROM tprodi");
-            while (rs.next()) {
-                cbProdi.addItem(rs.getString("idprodi") + " - " + rs.getString("prodi"));
-            }
-            // Jabatan
+            while(rs.next()) cbProdi.addItem(rs.getString(1)+" - "+rs.getString(2));
             cbJabatan.addItem("All");
             rs = st.executeQuery("SELECT idjabatan, jabatan FROM tjabatan");
-            while (rs.next()) {
-                cbJabatan.addItem(rs.getString("idjabatan") + " - " + rs.getString("jabatan"));
-            }
-            // Shift
+            while(rs.next()) cbJabatan.addItem(rs.getString(1)+" - "+rs.getString(2));
             cbShift.addItem("All");
             rs = st.executeQuery("SELECT idshift, namashift FROM tshift");
-            while (rs.next()) {
-                cbShift.addItem(rs.getString("idshift") + " - " + rs.getString("namashift"));
-            }
-            // Keterangan
+            while(rs.next()) cbShift.addItem(rs.getString(1)+" - "+rs.getString(1));
             cbKeterangan.addItem("All");
             rs = st.executeQuery("SELECT DISTINCT keterangan FROM tketerangan");
-            while (rs.next()) {
-                cbKeterangan.addItem(rs.getString("keterangan"));
-            }
-            rs.close(); st.close();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal muat filter: " + ex.getMessage());
+            while(rs.next()) cbKeterangan.addItem(rs.getString(1));
+        } catch(SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Gagal load filter: "+ex.getMessage());
         }
     }
-    
-    private void loadData(int halaman) {
-        model.setRowCount(0); // kosongkan tabel
-        try {
-            String where = " WHERE 1=1";
-            // ... (filter building remains unchanged) ...
 
-            // Hitung total baris
-            String sqlCount = "SELECT COUNT(*) FROM tabsensi " +
-                    "JOIN tkaryawan ON tabsensi.idkaryawan = tkaryawan.idkaryawan " +
-                    "JOIN tprodi ON tkaryawan.idprodi = tprodi.idprodi " +
-                    "JOIN tjabatan ON tkaryawan.idjabatan = tjabatan.idjabatan " +
-                    "JOIN tshift ON tkaryawan.idshift = tshift.idshift " +
-                    "JOIN tketerangan ON tabsensi.id_keterangan = tketerangan.id_keterangan" +
-                    where;
-            Statement stCount = conn.createStatement();
-            ResultSet rsCount = stCount.executeQuery(sqlCount);
-            int totalRows = 0;
-            if (rsCount.next()) totalRows = rsCount.getInt(1);
-            rsCount.close(); stCount.close();
-
-            // Jika tidak ada data, tampilkan pesan dan keluar
-            if (totalRows == 0) {
-                JOptionPane.showMessageDialog(this, "Data tidak ditemukan.");
-                // Reset paging ke 0/0
-                lblHalaman.setText("Halaman 0/0");
-                lblTotal.setText("Total: 0");
-                btnPrev.setEnabled(false);
-                btnNext.setEnabled(false);
-                return;
-            }
-
-            // Hitung totalPage minimal 1
-            totalPage = (int) Math.ceil((double) totalRows / rowsPerPage);
-            if (totalPage < 1) totalPage = 1;
-            currentPage = Math.min(Math.max(1, halaman), totalPage);
-
-            // Query data halaman
-            int offset = (currentPage - 1) * rowsPerPage;
-            String sqlData = "SELECT tabsensi.idabsen, tabsensi.idkaryawan, tkaryawan.namakaryawan, " +
-                    "tabsensi.tanggal, tabsensi.jammasuk, tabsensi.jamistirahat, " +
-                    "tabsensi.jamkembali, tabsensi.jampulang, " +
-                    "tkaryawan.hadir, tkaryawan.terlambat, tkaryawan.terlambat_kembali, tkaryawan.lembur, " +
-                    "tprodi.prodi, tjabatan.jabatan, tshift.namashift, tketerangan.keterangan " +
-                    "FROM tabsensi " +
-                    "JOIN tkaryawan ON tabsensi.idkaryawan = tkaryawan.idkaryawan " +
-                    "JOIN tprodi ON tkaryawan.idprodi = tprodi.idprodi " +
-                    "JOIN tjabatan ON tkaryawan.idjabatan = tjabatan.idjabatan " +
-                    "JOIN tshift ON tkaryawan.idshift = tshift.idshift " +
-                    "JOIN tketerangan ON tabsensi.id_keterangan = tketerangan.id_keterangan " +
-                    where +
-                    " ORDER BY tabsensi.tanggal DESC, tabsensi.jammasuk DESC " +
-                    " LIMIT " + rowsPerPage + " OFFSET " + offset;
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sqlData);
-            while (rs.next()) {
-                model.addRow(new Object[] {
-                    rs.getString("idabsen"),
-                    rs.getString("idkaryawan"),
-                    rs.getString("namakaryawan"),
-                    rs.getString("tanggal"),
-                    rs.getString("jammasuk"),
-                    rs.getString("jamistirahat"),
-                    rs.getString("jamkembali"),
-                    rs.getString("jampulang"),
-                    rs.getInt("hadir"),
-                    rs.getInt("terlambat"),
-                    rs.getInt("terlambat_kembali"),
-                    rs.getInt("lembur"),
-                    rs.getString("prodi"),
-                    rs.getString("jabatan"),
-                    rs.getString("namashift"),
-                    rs.getString("keterangan")
-                });
-            }
-            rs.close(); st.close();
-
-            // Update label dan tombol
-            lblHalaman.setText("Halaman " + currentPage + "/" + totalPage);
-            lblTotal.setText("Total: " + totalRows);
-            btnPrev.setEnabled(currentPage > 1);
-            btnNext.setEnabled(currentPage < totalPage);
-
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error load data: " + ex.getMessage());
+    private void applyViewMode() {
+        String mode = (String)cbViewMode.getSelectedItem();
+        resetTableColumns();
+        if("Tabel Harian".equals(mode)) {
+            hideColumns(new String[]{"Hadir","Terlambat","Terlambat Kembali","Lembur"});
+        } else if("Per Karyawan".equals(mode)) {
+            hideColumns(new String[]{"Jam Masuk","Jam Istirahat","Jam Kembali","Jam Pulang","Keterangan"});
         }
     }
-// Dialog pilihan ekspor
-private void exportDialog(String type) {
-    String[] options = {"Halaman ini saja", "Semua halaman"};
-    int choice = JOptionPane.showOptionDialog(this, 
-        "Pilih opsi ekspor " + type + ":", type + " Options",
-        JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
-        null, options, options[0]);
-    if (choice == 0) {
-        if (type.equals("Excel")) exportToExcel(currentPage, currentPage);
-        else exportToPDF(currentPage, currentPage);
-    } else if (choice == 1) {
-        if (type.equals("Excel")) exportToExcel(1, totalPage);
-        else exportToPDF(1, totalPage);
+
+    private void resetTableColumns() {
+        TableColumnModel cm = jtlaporan.getColumnModel();
+        while(cm.getColumnCount()>0) cm.removeColumn(cm.getColumn(0));
+        for(String name: allColumns) {
+            TableColumn c = new TableColumn(model.findColumn(name));
+            c.setHeaderValue(name);
+            cm.addColumn(c);
+        }
+    }
+    private void hideColumns(String[] cols) {
+    TableColumnModel cm = jtlaporan.getColumnModel();
+    for (int i = cm.getColumnCount() - 1; i >= 0; i--) {
+        String header = cm.getColumn(i).getHeaderValue().toString();
+        // cek apakah header ini ada di array cols
+        for (int j = 0; j < cols.length; j++) {
+            if (header.equals(cols[j])) {
+                cm.removeColumn(cm.getColumn(i));
+                break;
+            }
+        }
     }
 }
 
-// Contoh stub: ekspor ke Excel (gunakan Apache POI misalnya)
-private void exportToExcel(int startPage, int endPage) {
-    // Buat workbook dan sheet baru per halaman 30 baris
-    // (Library Apache POI diperlukan)
+    
+    private void loadData(int page) {
+    currentPage = page;
+    model.setRowCount(0);  // kosongkan table dulu
+
+    // 1) Build WHERE clause
+    String where = " WHERE 1=1 ";
+    List<Object> params = new ArrayList<>();
+
+    if (!tfCariIdAbsen.getText().trim().isEmpty()) {
+        where += " AND t.idabsen LIKE ? ";
+        params.add("%" + tfCariIdAbsen.getText().trim() + "%");
+    }
+    if (!tfCariIdKaryawan.getText().trim().isEmpty()) {
+        where += " AND k.idkaryawan LIKE ? ";
+        params.add("%" + tfCariIdKaryawan.getText().trim() + "%");
+    }
+    if (!tfCariNama.getText().trim().isEmpty()) {
+        where += " AND k.namakaryawan LIKE ? ";
+        params.add("%" + tfCariNama.getText().trim() + "%");
+    }
+    if (cbProdi.getSelectedIndex() > 0) {
+        String idp = cbProdi.getSelectedItem().toString().split(" - ")[0];
+        where += " AND k.idprodi = ? ";
+        params.add(Integer.parseInt(idp));
+    }
+    if (cbJabatan.getSelectedIndex() > 0) {
+        String idj = cbJabatan.getSelectedItem().toString().split(" - ")[0];
+        where += " AND k.idjabatan = ? ";
+        params.add(Integer.parseInt(idj));
+    }
+    if (cbShift.getSelectedIndex() > 0) {
+        String ids = cbShift.getSelectedItem().toString().split(" - ")[0];
+        where += " AND t.idshift = ? ";
+        params.add(Integer.parseInt(ids));
+    }
+    if (cbKeterangan.getSelectedIndex() > 0) {
+        where += " AND ket.keterangan = ? ";
+        params.add(cbKeterangan.getSelectedItem().toString());
+    }
+    if (cbUseDate.isSelected()) {
+        Date d1 = (Date)spinnerTanggalMulai.getValue();
+        Date d2 = (Date)spinnerTanggalAkhir.getValue();
+        where += " AND t.tanggal BETWEEN ? AND ? ";
+        params.add(new java.sql.Date(d1.getTime()));
+        params.add(new java.sql.Date(d2.getTime()));
+    }
+
     try {
-        Workbook workbook = new XSSFWorkbook();
-        int sheetNo = 1;
-        for (int pg = startPage; pg <= endPage; pg++) {
-            Sheet sheet = workbook.createSheet("Laporan_" + pg);
-            // Header kolom di sheet
-            Row header = sheet.createRow(0);
-            for (int col=0; col<model.getColumnCount(); col++) {
-                Cell cell = header.createCell(col);
-                cell.setCellValue(model.getColumnName(col));
-            }
-            // Copy data baris per halaman
-            String query = ""; // Sesuaikan dengan paging: page=pg
-            // (Bisa memanggil kembali loadData untuk halaman ini lalu baca model, atau jalankan query lagi)
-            // Tambahkan baris ke sheet...
+        // 2a) Hitung total rows
+        String sqlCount = 
+            "SELECT COUNT(*) FROM tabsensi t " +
+            "JOIN tkaryawan k ON t.idkaryawan = k.idkaryawan " +
+            "JOIN tjabatan j ON k.idjabatan = j.idjabatan " +
+            "JOIN tprodi p   ON k.idprodi   = p.idprodi   " +
+            "JOIN tshift s   ON t.idshift   = s.idshift   " +
+            "JOIN tketerangan ket ON t.id_keterangan = ket.id_keterangan "
+            + where;
+        PreparedStatement pstCount = conn.prepareStatement(sqlCount);
+        for (int i = 0; i < params.size(); i++) {
+            pstCount.setObject(i+1, params.get(i));
         }
-        // Simpan file
-        JFileChooser fileChooser = new JFileChooser();
-        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            FileOutputStream out = new FileOutputStream(fileChooser.getSelectedFile() + ".xlsx");
+        ResultSet rsCount = pstCount.executeQuery();
+        int totalRows = rsCount.next() ? rsCount.getInt(1) : 0;
+        totalPage = (int)Math.ceil(totalRows / (double)rowsPerPage);
+
+        // 2b) Query data page
+        int offset = (currentPage - 1) * rowsPerPage;
+        String sqlData = 
+            "SELECT t.idabsen, t.idkaryawan, k.namakaryawan, t.tanggal, " +
+            "       t.jammasuk, t.jamistirahat, t.jamkembali, t.jampulang, " +
+            "       ket.keterangan AS Hadir, " +
+            "       k.terlambat, k.terlambat_kembali, k.lembur, " +
+            "       p.prodi, j.jabatan, s.namashift, ket.keterangan " +
+            "FROM tabsensi t " +
+            "JOIN tkaryawan k ON t.idkaryawan = k.idkaryawan " +
+            "JOIN tjabatan j ON k.idjabatan = j.idjabatan " +
+            "JOIN tprodi p   ON k.idprodi   = p.idprodi   " +
+            "JOIN tshift s   ON t.idshift   = s.idshift   " +
+            "JOIN tketerangan ket ON t.id_keterangan = ket.id_keterangan "
+            + where +
+            " ORDER BY t.tanggal DESC, t.idabsen DESC " +
+            " LIMIT ? OFFSET ?";
+
+        PreparedStatement pst = conn.prepareStatement(sqlData);
+        int idx = 1;
+        for (Object o : params) {
+            pst.setObject(idx++, o);
+        }
+        pst.setInt(idx++, rowsPerPage);
+        pst.setInt(idx, offset);
+
+        ResultSet rs = pst.executeQuery();
+        while (rs.next()) {
+            Object[] row = new Object[] {
+                rs.getInt("idabsen"),
+                rs.getString("idkaryawan"),
+                rs.getString("namakaryawan"),
+                rs.getDate("tanggal"),
+                rs.getTime("jammasuk"),
+                rs.getTime("jamistirahat"),
+                rs.getTime("jamkembali"),
+                rs.getTime("jampulang"),
+                // hadir & keterangan sebenarnya duplikat?
+                // tapi sesuaikan urutan kolommu
+                rs.getObject("Hadir"),
+                rs.getInt("terlambat"),
+                rs.getInt("terlambat_kembali"),
+                rs.getInt("lembur"),
+                rs.getString("prodi"),
+                rs.getString("jabatan"),
+                rs.getString("namashift"),
+                rs.getString("keterangan")
+            };
+            model.addRow(row);
+        }
+
+        // 3) Update UI
+        lblHalaman.setText("Halaman " + currentPage + " / " + totalPage);
+        lblTotal.setText("Total: " + totalRows);
+        btnPrev.setEnabled(currentPage > 1);
+        btnNext.setEnabled(currentPage < totalPage);
+
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error load data: " + ex.getMessage());
+    }
+
+    // 4) Apply view mode (sembunyi/ tampil kolom sesuai pilihan)
+    applyViewMode();
+}
+
+     private void exportDialog(String type) {
+    JFileChooser chooser = new JFileChooser();
+    if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+        String path = chooser.getSelectedFile().getAbsolutePath();
+        if ("Excel".equalsIgnoreCase(type)) {
+            exportToExcel(path.endsWith(".xlsx") ? path : path + ".xlsx");
+        } else if ("PDF".equalsIgnoreCase(type)) {
+            exportToPDF(path.endsWith(".pdf") ? path : path + ".pdf");
+        }
+    }
+}
+
+private void exportToExcel(String path) {
+    try (Workbook workbook = new XSSFWorkbook()) {
+        Sheet sheet = workbook.createSheet("Laporan");
+        Row header = sheet.createRow(0);
+
+        // Buat header kolom
+        for (int i = 0; i < model.getColumnCount(); i++) {
+            header.createCell(i).setCellValue(model.getColumnName(i));
+        }
+
+        // Buat data
+        for (int r = 0; r < model.getRowCount(); r++) {
+            Row row = sheet.createRow(r + 1);
+            for (int c = 0; c < model.getColumnCount(); c++) {
+                Object val = model.getValueAt(r, c);
+                row.createCell(c).setCellValue(val == null ? "" : val.toString());
+            }
+        }
+
+        try (FileOutputStream out = new FileOutputStream(path)) {
             workbook.write(out);
-            out.close();
-            workbook.close();
-            JOptionPane.showMessageDialog(this, "Data berhasil diekspor ke Excel");
         }
+
+        JOptionPane.showMessageDialog(this, "Berhasil ekspor ke Excel.");
     } catch (Exception ex) {
-        JOptionPane.showMessageDialog(this, "Error ekspor Excel: " + ex.getMessage());
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Gagal ekspor Excel: " + ex.getMessage());
     }
 }
 
-// Contoh stub: ekspor ke PDF (gunakan iText atau library PDF)
-private void exportToPDF(int startPage, int endPage) {
-    // Buat dokumen PDF, isi header, dan tabel per halaman
-    // (Library iText atau JasperReports diperlukan)
+private void exportToPDF(String path) {
     try {
-        Document document = new Document();
-        PdfWriter.getInstance(document, new FileOutputStream("laporan.pdf"));
+        com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+        PdfWriter.getInstance(document, new FileOutputStream(path));
         document.open();
-        // Tambahkan judul dan konten tabel
-        // Pilih data berdasar paging: pg = startPage..endPage
-        // [...]
+        com.itextpdf.text.pdf.PdfPTable pdfTable = new com.itextpdf.text.pdf.PdfPTable(model.getColumnCount());
+
+        // header
+        for (int i = 0; i < model.getColumnCount(); i++) {
+            pdfTable.addCell(model.getColumnName(i));
+        }
+
+        // data
+        for (int r = 0; r < model.getRowCount(); r++) {
+            for (int c = 0; c < model.getColumnCount(); c++) {
+                Object val = model.getValueAt(r, c);
+                pdfTable.addCell(val == null ? "" : val.toString());
+            }
+        }
+
+        document.add(pdfTable);
         document.close();
-        JOptionPane.showMessageDialog(this, "Data berhasil diekspor ke PDF");
+        JOptionPane.showMessageDialog(this, "Berhasil ekspor ke PDF.");
     } catch (Exception ex) {
-        JOptionPane.showMessageDialog(this, "Error ekspor PDF: " + ex.getMessage());
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Gagal ekspor PDF: " + ex.getMessage());
     }
-    
 }
 
 
-    @SuppressWarnings("unchecked")
+ @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
-        jLabel1.setText("Laporan Absensi");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(178, 178, 178)
-                .addComponent(jLabel1)
-                .addContainerGap(181, Short.MAX_VALUE))
+            .addGap(0, 554, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(38, 38, 38)
-                .addComponent(jLabel1)
-                .addContainerGap(613, Short.MAX_VALUE))
+            .addGap(0, 680, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(laporan.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(laporan.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(laporan.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(laporan.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-               SwingUtilities.invokeLater(() -> new laporan());
-            }
-        });
+        SwingUtilities.invokeLater(() -> new laporan().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 }
